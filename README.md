@@ -108,7 +108,11 @@ or in `~/.codex/config.toml`:
 command = "npx"
 args = ["-y", "@obscurify/mcp"]
 env = { OBSCURIFY_API_KEY = "sk-obs1_..." }
+# Optional: don't ask before each paid call (ask, chat, second_opinion, generate_image)
+default_tools_approval_mode = "approve"
 ```
+
+The tools that spend from your balance are marked as not read-only, so Codex asks before running them unless you set `default_tools_approval_mode`.
 
 ### opencode
 
@@ -174,6 +178,10 @@ It binds to `127.0.0.1` unless you pass `--host`. Each request may carry its own
 ## Privacy
 
 The server is a thin client: it sends your prompts to `https://obscurify.ai` with your key and nothing else. No telemetry, no logging to disk, no file access. What Obscurify.ai keeps is described in its [privacy policy](https://obscurify.ai/privacy?utm_source=mcp): prompts and responses are not stored, and identities are scrambled before requests reach model providers. Providers still see the prompt text, so don't send secrets you wouldn't send to the model itself.
+
+## Tested
+
+On 2026-10-28 with a Pay As You Go key, every tool was called from MCP Inspector 2.12 (CLI), Claude Code 2.1, Codex CLI 0.165 (both from the local build and from `npx -y @obscurify/mcp`), and the SDK client in `scripts/e2e.mjs` over stdio and Streamable HTTP. opencode 2.1 connects and lists the tools.
 
 ## Development
 
