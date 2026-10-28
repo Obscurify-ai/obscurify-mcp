@@ -1,0 +1,65 @@
+{
+  "name": "@obscurify/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Obscurify.ai: ask 200+ models (Claude, GPT, Gemini, Llama, DeepSeek, Qwen) privately from any MCP client, get second opinions, list models and prices, generate images",
+  "mcpName": "io.github.Obscurify-ai/obscurify-mcp",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "Obscurify.ai",
+    "email": "contact@obscurify.ai",
+    "url": "https://obscurify.ai"
+  },
+  "homepage": "https://github.com/Obscurify-ai/obscurify-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Obscurify-ai/obscurify-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Obscurify-ai/obscurify-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "obscurify",
+    "llm",
+    "ai",
+    "privacy",
+    "second-opinion",
+    "openai-compatible",
+    "claude",
+    "gpt",
+    "gemini",
+    "deepseek"
+  ],
+  "bin": {
+    "obscurify-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

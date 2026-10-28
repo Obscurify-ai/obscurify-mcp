@@ -1,0 +1,39 @@
+# On a version tag (v*): publish to npm with provenance, then to the official MCP Registry.
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Check the tag matches package.json and server.json
+        run: |
+          V="$(node -p 'require("./package.json").version')"
+          test "v$V" = "$GITHUB_REF_NAME"
+          test "$(node -p 'require("./server.json").version')" = "$V"
+          test "$(node -p 'require("./server.json").packages[0].version')" = "$V"
+      - run: npm ci
+      - run: npm run build
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to the MCP Registry
+        run: |
+          curl -sL https://github.com/modelcontextprotocol/registry/releases/download/v1.8.6/mcp-publisher_linux_amd64.tar.gz | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          # npm can take a minute to serve a brand-new version.
+          for i in 1 2 3 4 5 6; do ./mcp-publisher publish && exit 0; sleep 20; done
+          exit 1

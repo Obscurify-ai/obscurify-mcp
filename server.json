@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Obscurify-ai/obscurify-mcp",
+  "title": "Obscurify.ai",
+  "description": "Ask 200+ AI models privately from your agent: one-shot, chat, second opinions, prices, images.",
+  "websiteUrl": "https://obscurify.ai/?utm_source=mcp",
+  "repository": {
+    "url": "https://github.com/Obscurify-ai/obscurify-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@obscurify/mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OBSCURIFY_API_KEY",
+          "description": "Obscurify.ai API key (sk-obs1_...) from obscurify.ai/account",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "OBSCURIFY_DEFAULT_MODEL",
+          "description": "Default model for ask and chat (default deepseek/deepseek-v4-flash)",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OBSCURIFY_SECOND_OPINION_MODELS",
+          "description": "Comma-separated default models for second_opinion",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
