@@ -59,7 +59,7 @@ export function createServer(config: Config): McpServer {
         "Obscurify.ai gives private access to 200+ AI models (Claude, GPT, Gemini, Llama, DeepSeek, Qwen and more) " +
         "through zero-data-retention routes; prompts and replies are not stored by Obscurify.ai. Use `ask` for a one-off " +
         "question to another model, `chat` to continue a conversation, `second_opinion` to compare answers from several " +
-        "models, `list_models` to find model IDs, prices and context sizes, `generate_image` for pictures and `balance` " +
+        "models, `list_models` to find model IDs, prices and context sizes, and `balance` " +
         "to check spending. Calls cost money from the account balance; the default model is cheap.",
     },
   );
@@ -256,58 +256,6 @@ export function createServer(config: Config): McpServer {
         return {
           content: [{ type: "text", text: head + rows.join("\n") }],
           structuredContent: { total, matched, models },
-        };
-      } catch (e) {
-        return fail(e);
-      }
-    },
-  );
-
-  server.registerTool(
-    "generate_image",
-    {
-      title: "Generate an image",
-      description:
-        "Generate an image from a text prompt with Obscurify.ai's Stable Diffusion image models (SDXL, SD 1.5 and LCM checkpoints). " +
-        "Returns the image. Costs a fraction of a cent per image from the account balance. " +
-        "Pass `list: true` to see the available image models and prices instead.",
-      inputSchema: {
-        prompt: z.string().optional().describe("What to draw. Required unless list is true."),
-        model: z
-          .string()
-          .optional()
-          .describe('Image model ID (default "realvis-xl-v4", photorealistic). Others include "juggernaut-xl-v10" and "animagine-xl-v-3-1" (anime). Use list: true for all.'),
-        negative_prompt: z.string().optional().describe("Things to keep out of the image."),
-        width: z.number().int().min(256).max(2048).optional().describe("Width in pixels (default: the model's)."),
-        height: z.number().int().min(256).max(2048).optional().describe("Height in pixels (default: the model's)."),
-        seed: z.number().int().optional().describe("Seed for reproducible results."),
-        list: z.boolean().optional().describe("List image models and prices instead of generating."),
-      },
-      annotations: PAID,
-    },
-    async (a) => {
-      try {
-        if (a.list || !a.prompt) {
-          const models = await client.imageModels();
-          const rows = models.map((m) => `${m.id} | ${m.name} | ${m.family} | $${m.price}`);
-          const note = a.prompt || a.list ? "" : "No prompt given, so here are the image models.\n";
-          return { content: [{ type: "text", text: `${note}id | name | family | $/image\n${rows.join("\n")}` }] };
-        }
-        const img = await client.generateImage({
-          prompt: a.prompt,
-          model: a.model ?? "realvis-xl-v4",
-          negativePrompt: a.negative_prompt,
-          width: a.width,
-          height: a.height,
-          seed: a.seed,
-        });
-        const caption = `[model: ${img.model.id} · price: $${img.model.price}/image]`;
-        if (img.url) return { content: [{ type: "text", text: `${img.url}\n${caption}` }] };
-        return {
-          content: [
-            { type: "image", data: img.data!, mimeType: img.mimeType },
-            { type: "text", text: caption },
-          ],
         };
       } catch (e) {
         return fail(e);

@@ -65,14 +65,6 @@ export interface ModelInfo {
   plan: "any" | "casual" | "pro";
 }
 
-export interface ImageModel {
-  id: string;
-  name: string;
-  family: string;
-  pipelines: string[];
-  price: number;
-}
-
 export interface AccountInfo {
   balance_usd: number;
   plan: string;
@@ -95,11 +87,10 @@ const CACHE_MS = 10 * 60 * 1000;
 
 export class ObscurifyClient {
   private modelsCache?: { at: number; models: ModelInfo[] };
-  private imageModelsCache?: { at: number; models: ImageModel[] };
 
   constructor(readonly config: Config) {}
 
-  /** Site root, for the non-/v1 account and image endpoints. */
+  /** Site root, for the non-/v1 account endpoints. */
   private get root(): string {
     return this.config.baseUrl.replace(/\/v1$/, "");
   }
@@ -214,54 +205,6 @@ export class ObscurifyClient {
       }));
     this.modelsCache = { at: Date.now(), models };
     return models;
-  }
-
-  async imageModels(): Promise<ImageModel[]> {
-    if (this.imageModelsCache && Date.now() - this.imageModelsCache.at < CACHE_MS) return this.imageModelsCache.models;
-    const data = await this.request<{ models: ImageModel[] }>(`${this.root}/img_gen_models`);
-    // The API generates with these base families only (see POST /image_generation).
-    const families = new Set(["stable-diffusion", "stable-diffusion-xl", "latent-consistency"]);
-    const models = data.models.filter(
-      (m) => families.has(m.family) && m.pipelines?.includes("text-to-image") && !/inpainting|pix2pix/.test(m.id),
-    );
-    this.imageModelsCache = { at: Date.now(), models };
-    return models;
-  }
-
-  async generateImage(opts: {
-    prompt: string;
-    model: string;
-    negativePrompt?: string;
-    width?: number;
-    height?: number;
-    seed?: number;
-  }): Promise<{ data?: string; url?: string; mimeType: string; model: ImageModel }> {
-    const models = await this.imageModels();
-    const model = models.find((m) => m.id === opts.model);
-    if (!model) {
-      throw new ObscurifyError(
-        `Unknown image model "${opts.model}". Text-to-image models: ${models.map((m) => m.id).join(", ")}`,
-      );
-    }
-    const body: Record<string, unknown> = { base: model.family, model: model.id, prompt: opts.prompt };
-    if (opts.negativePrompt) body.negative_prompt = opts.negativePrompt;
-    if (opts.width) body.width = opts.width;
-    if (opts.height) body.height = opts.height;
-    if (opts.seed !== undefined) body.seed = opts.seed;
-    const res = await this.request<{ image: string }>(`${this.root}/image_generation`, {
-      method: "POST",
-      auth: true,
-      body: JSON.stringify(body),
-    });
-    const image = res.image ?? "";
-    if (/^https?:\/\//.test(image)) return { url: image, mimeType: "", model };
-    const b64 = image.replace(/^data:[^,]+,/, "");
-    const mimeType = b64.startsWith("iVBOR")
-      ? "image/png"
-      : b64.startsWith("UklGR")
-        ? "image/webp"
-        : "image/jpeg";
-    return { data: b64, mimeType, model };
   }
 
   async account(): Promise<AccountInfo> {

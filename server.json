@@ -2,19 +2,19 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Obscurify-ai/obscurify-mcp",
   "title": "Obscurify.ai",
-  "description": "Ask 200+ AI models privately from your agent: one-shot, chat, second opinions, prices, images.",
+  "description": "Ask 200+ AI models privately from your agent: one-shot, chat, second opinions, prices.",
   "websiteUrl": "https://obscurify.ai/?utm_source=mcp",
   "repository": {
     "url": "https://github.com/Obscurify-ai/obscurify-mcp",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@obscurify/mcp",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       },

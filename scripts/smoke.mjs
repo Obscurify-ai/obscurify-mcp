@@ -6,7 +6,7 @@ const entry = new URL("../dist/index.js", import.meta.url).pathname;
 const client = new Client({ name: "obscurify-smoke", version: "0.0.0" });
 await client.connect(new StdioClientTransport({ command: process.execPath, args: [entry], env: { PATH: process.env.PATH ?? "" } }));
 const names = (await client.listTools()).tools.map((t) => t.name).sort().join(",");
-if (names !== "ask,balance,chat,generate_image,list_models,second_opinion") throw new Error(`tools: ${names}`);
+if (names !== "ask,balance,chat,list_models,second_opinion") throw new Error(`tools: ${names}`);
 const models = await client.callTool({ name: "list_models", arguments: { search: "llama", limit: 3 } });
 if (models.isError || !models.structuredContent?.models?.length) throw new Error(JSON.stringify(models));
 const ask = await client.callTool({ name: "ask", arguments: { prompt: "hi" } });

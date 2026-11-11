@@ -1,13 +1,12 @@
 // End-to-end check against the live Obscurify.ai API through a real MCP client.
-// Usage: OBSCURIFY_API_KEY=sk-obs1_... node scripts/e2e.mjs [stdio|http] [--image]
-// Spends well under a cent: short prompts, small max_tokens, one cheap image if --image.
+// Usage: OBSCURIFY_API_KEY=sk-obs1_... node scripts/e2e.mjs [stdio|http]
+// Spends well under a cent: short prompts, small max_tokens.
 import { spawn } from "node:child_process";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 const mode = process.argv[2] ?? "stdio";
-const withImage = process.argv.includes("--image");
 const entry = new URL("../dist/index.js", import.meta.url).pathname;
 let child;
 let failures = 0;
@@ -36,7 +35,7 @@ if (mode === "http") {
 
 const { tools } = await client.listTools();
 const names = tools.map((t) => t.name).sort();
-check("tools listed", names.join(",") === "ask,balance,chat,generate_image,list_models,second_opinion", names.join(","));
+check("tools listed", names.join(",") === "ask,balance,chat,list_models,second_opinion", names.join(","));
 
 let r = await client.callTool({ name: "list_models", arguments: { search: "claude", limit: 5 } });
 check("list_models", !r.isError && /anthropic\/claude/.test(text(r)), text(r).split("\n")[0]);
@@ -77,17 +76,6 @@ check("bad model is a tool error", r.isError === true, text(r).slice(0, 120));
 
 r = await client.callTool({ name: "balance", arguments: {} });
 check("balance", !r.isError && /Balance: \$/.test(text(r)), text(r).split("\n").slice(0, 2).join(" | "));
-
-r = await client.callTool({ name: "generate_image", arguments: { list: true } });
-check("generate_image list", !r.isError && /realvis-xl-v4/.test(text(r)));
-if (withImage) {
-  r = await client.callTool({
-    name: "generate_image",
-    arguments: { prompt: "a small purple robot, studio photo", width: 512, height: 512 },
-  });
-  const img = r.content.find((c) => c.type === "image");
-  check("generate_image", !r.isError && img && img.data.length > 1000, img ? `${img.mimeType}, ${img.data.length} b64 chars` : text(r));
-}
 
 await client.close();
 child?.kill();

@@ -16,7 +16,6 @@ Obscurify.ai is a privacy-focused, OpenAI-compatible AI platform. Text requests 
 | `chat` | Multi-turn: pass the whole `messages` history and get the next reply. |
 | `second_opinion` | The same prompt to 2-5 models in parallel, every answer side by side. Good for checking a claim, reviewing code or a plan, or breaking a tie. |
 | `list_models` | Model IDs with context window, price per million input/output tokens, tool support and the plan each needs. Filter by name, plan, price or tool support. Works without a key. |
-| `generate_image` | Text-to-image with Stable Diffusion models (SDXL, SD 1.5, LCM). Returns the image. `list: true` shows the models and prices. |
 | `balance` | Balance, plan, usage this billing period, and whether the account can use frontier and uncensored models. |
 
 Defaults are cheap and fast: `ask` and `chat` use `deepseek/deepseek-v4-flash`, and `second_opinion` asks `deepseek/deepseek-v4-flash`, `meta-llama/llama-3.3-70b-instruct` and `qwen/qwen3.8-27b`. Pass `model` / `models` to use anything else, e.g. `anthropic/claude-sonnet-5.5` or `openai/gpt-5.5`.
@@ -108,7 +107,7 @@ or in `~/.codex/config.toml`:
 command = "npx"
 args = ["-y", "@obscurify/mcp"]
 env = { OBSCURIFY_API_KEY = "sk-obs1_..." }
-# Optional: don't ask before each paid call (ask, chat, second_opinion, generate_image)
+# Optional: don't ask before each paid call (ask, chat, second_opinion)
 default_tools_approval_mode = "approve"
 ```
 
@@ -162,7 +161,7 @@ It binds to `127.0.0.1` unless you pass `--host`. Each request may carry its own
 
 | Variable | Default | |
 |---|---|---|
-| `OBSCURIFY_API_KEY` | (none) | Your `sk-obs1_...` key. Without it only `list_models` and `generate_image list` work. |
+| `OBSCURIFY_API_KEY` | (none) | Your `sk-obs1_...` key. Without it only `list_models` works. |
 | `OBSCURIFY_DEFAULT_MODEL` | `deepseek/deepseek-v4-flash` | Model for `ask` and `chat` when none is given. |
 | `OBSCURIFY_SECOND_OPINION_MODELS` | `deepseek/deepseek-v4-flash,meta-llama/llama-3.3-70b-instruct,qwen/qwen3.8-27b` | Comma-separated models for `second_opinion`. |
 | `OBSCURIFY_BASE_URL` | `https://obscurify.ai/v1` | API base URL. |
@@ -188,7 +187,7 @@ On 2026-10-28 with a Pay As You Go key, every tool was called from MCP Inspector
 ```sh
 npm install
 npm run build
-OBSCURIFY_API_KEY=sk-obs1_... node scripts/e2e.mjs stdio --image   # live end-to-end test, costs well under a cent
+OBSCURIFY_API_KEY=sk-obs1_... node scripts/e2e.mjs stdio   # live end-to-end test, costs well under a cent
 OBSCURIFY_API_KEY=sk-obs1_... node scripts/e2e.mjs http
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
