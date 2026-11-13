@@ -26,7 +26,7 @@ Defaults are cheap and fast: `ask` and `chat` use `deepseek/deepseek-v4-flash`, 
 2. Add a balance (card, Monero, Bitcoin or Lightning). The API works on every plan with a positive balance. Frontier models need the Casual plan or higher, and uncensored models need Pro ([pricing](https://obscurify.ai/pricing?utm_source=mcp)).
 3. On [obscurify.ai/account](https://obscurify.ai/account?utm_source=mcp), click **Show API Key** and copy the `sk-obs1_...` key.
 
-Calls cost money from your balance at each model's listed price ([model cards](https://obscurify.ai/model_cards?utm_source=mcp)). Every reply shows what it cost.
+Calls cost money from your balance at each model's listed price ([model list](https://obscurify.ai/models?utm_source=mcp)). Every reply shows what it cost.
 
 ## Setup
 
