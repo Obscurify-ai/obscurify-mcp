@@ -166,6 +166,21 @@ It binds to `127.0.0.1` unless you pass `--host`. Each request may carry its own
 | `OBSCURIFY_SECOND_OPINION_MODELS` | `deepseek/deepseek-v4-flash,meta-llama/llama-3.3-70b-instruct,qwen/qwen3.8-27b` | Comma-separated models for `second_opinion`. |
 | `OBSCURIFY_BASE_URL` | `https://obscurify.ai/v1` | API base URL. |
 | `OBSCURIFY_TIMEOUT_MS` | `180000` | Per-request timeout. `second_opinion` caps each model at 55 s so the answers that do arrive come back. |
+| `OBSCURIFY_PRIVATE` | off | `1`: private sessions (below). |
+| `OBSCURIFY_PRIVATE_URL` | `http://127.0.0.1:8899` | Where the private-session proxy listens. |
+| `UNLINKABLE_BIN` | `unlinkable-inference` | The proxy binary, if it isn't on `PATH`. |
+
+## Private sessions
+
+Set `OBSCURIFY_PRIVATE=1` and `ask`, `chat` and `second_opinion` go through private sessions ([unlinkable inference](https://obscurify.ai/blog/unlinkable_inference?utm_source=mcp)): each conversation is paid from a wallet of blind-signed vouchers on your machine, through a session with its own random secret, so Obscurify.ai can't tell which account a question came from or which questions belong together. Your API key only tops the wallet up; it never goes with a question.
+
+It needs the open-source proxy: `cargo install unlinkable-inference-cli`. The MCP server starts it when it isn't running (and leaves it running, so sessions close on their own when idle). `list_models` and `balance` stay as they are: the model list is public and the balance belongs to the account.
+
+```json
+"env": { "OBSCURIFY_API_KEY": "sk-obs1_...", "OBSCURIFY_PRIVATE": "1" }
+```
+
+Guide for every client (Claude Code, Codex, pi, SDKs): [obscurify.ai/tutorials/private_sessions](https://obscurify.ai/tutorials/private_sessions?utm_source=mcp).
 
 ## Example prompts
 
@@ -181,6 +196,8 @@ The server is a thin client: it sends your prompts to `https://obscurify.ai` wit
 ## Tested
 
 On 2026-10-28 with a Pay As You Go key, every tool was called from MCP Inspector 2.12 (CLI), Claude Code 2.1, Codex CLI 0.165 (both from the local build and from `npx -y @obscurify/mcp`), and the SDK client in `scripts/e2e.mjs` over stdio and Streamable HTTP. opencode 2.1 connects and lists the tools.
+
+On 2026-11-15, 0.3.0's private mode passed `scripts/e2e.mjs` over stdio against obscurify.ai (every tool, questions through the proxy's sessions) and against a local server that had to start the proxy itself.
 
 ## Development
 

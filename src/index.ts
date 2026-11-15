@@ -23,6 +23,13 @@ Environment:
   OBSCURIFY_SECOND_OPINION_MODELS  comma-separated default models for second_opinion
   OBSCURIFY_BASE_URL               API base URL (https://obscurify.ai/v1)
   OBSCURIFY_TIMEOUT_MS             per-request timeout (180000)
+  OBSCURIFY_PRIVATE=1              private sessions: model calls go through the local
+                                   unlinkable-inference proxy (started if needed), so
+                                   Obscurify can't tell which account a chat came from
+                                   or which chats belong together. Needs
+                                   \`cargo install unlinkable-inference-cli\`.
+  OBSCURIFY_PRIVATE_URL            proxy address (http://127.0.0.1:8899)
+  UNLINKABLE_BIN                   proxy binary (unlinkable-inference on PATH)
 `;
 
 function arg(name: string): string | undefined {

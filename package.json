@@ -1,6 +1,6 @@
 {
   "name": "@obscurify/mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP server for Obscurify.ai: ask 200+ models (Claude, GPT, Gemini, Llama, DeepSeek, Qwen) privately from any MCP client, get second opinions and list models and prices",
   "mcpName": "io.github.Obscurify-ai/obscurify-mcp",
   "type": "module",

@@ -1,4 +1,5 @@
 // Thin client for the Obscurify.ai API (https://obscurify.ai/api-docs).
+import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 
 export const VERSION: string = createRequire(import.meta.url)("../package.json").version;
@@ -11,7 +12,11 @@ export interface Config {
   defaultModel: string;
   secondOpinionModels: string[];
   timeoutMs: number;
+  /** Private sessions: model calls go through the local unlinkable-inference proxy. */
+  private?: { url: string; bin: string };
 }
+
+const truthy = (v: string | undefined) => /^(1|true|yes|on)$/i.test(v?.trim() ?? "");
 
 export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
   const list = (s: string | undefined) =>
@@ -27,6 +32,12 @@ export function configFromEnv(env: NodeJS.ProcessEnv = process.env): Config {
       ? list(env.OBSCURIFY_SECOND_OPINION_MODELS)
       : ["deepseek/deepseek-v4-flash", "meta-llama/llama-3.3-70b-instruct", "qwen/qwen3.8-27b"],
     timeoutMs: Number(env.OBSCURIFY_TIMEOUT_MS) > 0 ? Number(env.OBSCURIFY_TIMEOUT_MS) : 180_000,
+    private: truthy(env.OBSCURIFY_PRIVATE)
+      ? {
+          url: (env.OBSCURIFY_PRIVATE_URL?.trim() || "http://127.0.0.1:8899").replace(/\/+$/, ""),
+          bin: env.UNLINKABLE_BIN?.trim() || "unlinkable-inference",
+        }
+      : undefined,
   };
 }
 
@@ -136,6 +147,47 @@ export class ObscurifyClient {
     }
   }
 
+  /**
+   * Private mode: make sure the unlinkable-inference proxy runs (start it if
+   * not; it keeps running after this process so open sessions close when
+   * idle). The proxy pays each chat from a voucher wallet through a session of
+   * its own; the API key only tops the wallet up and never goes with a chat.
+   */
+  private async ensureProxy(): Promise<string> {
+    const p = this.config.private!;
+    const up = () =>
+      fetch(`${p.url}/_unlinkable/status`, { signal: AbortSignal.timeout(2000) }).then(
+        (r) => r.ok,
+        () => false,
+      );
+    if (await up()) return p.url;
+    const listen = new URL(p.url).host;
+    const started = await new Promise<string | null>((resolve) => {
+      const child = spawn(p.bin, ["serve", "--listen", listen], {
+        detached: true,
+        stdio: "ignore",
+        env: { ...process.env, UNLINKABLE_SERVER: process.env.UNLINKABLE_SERVER ?? this.root },
+      });
+      child.once("error", (e) => resolve(e.message));
+      child.once("spawn", () => {
+        child.unref();
+        resolve(null);
+      });
+    });
+    if (started) {
+      throw new ObscurifyError(
+        `Private mode needs the unlinkable-inference proxy (${started}). Install it with ` +
+          "`cargo install unlinkable-inference-cli`, or set UNLINKABLE_BIN to its path. " +
+          "Guide: https://obscurify.ai/tutorials/private_sessions",
+      );
+    }
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 250));
+      if (await up()) return p.url;
+    }
+    throw new ObscurifyError(`The unlinkable-inference proxy did not start on ${p.url}.`);
+  }
+
   async complete(opts: {
     model?: string;
     messages: Message[];
@@ -156,7 +208,8 @@ export class ObscurifyClient {
       choices?: { finish_reason?: string; message?: { content?: string | null; reasoning?: string | null; reasoning_content?: string | null } }[];
       usage?: { prompt_tokens?: number; completion_tokens?: number; cost?: number };
     };
-    const data = await this.request<Resp>(`${this.config.baseUrl}/chat/completions`, {
+    const base = this.config.private ? `${await this.ensureProxy()}/v1` : this.config.baseUrl;
+    const data = await this.request<Resp>(`${base}/chat/completions`, {
       method: "POST",
       auth: true,
       body: JSON.stringify(body),
