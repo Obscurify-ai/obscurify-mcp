@@ -174,7 +174,7 @@ It binds to `127.0.0.1` unless you pass `--host`. Each request may carry its own
 
 Set `OBSCURIFY_PRIVATE=1` and `ask`, `chat` and `second_opinion` go through private sessions ([unlinkable inference](https://obscurify.ai/blog/unlinkable_inference?utm_source=mcp)): each conversation is paid from a wallet of blind-signed vouchers on your machine, through a session with its own random secret, so Obscurify.ai can't tell which account a question came from or which questions belong together. Your API key only tops the wallet up; it never goes with a question.
 
-It needs the open-source proxy: `cargo install unlinkable-inference-cli`. The MCP server starts it when it isn't running (and leaves it running, so sessions close on their own when idle). `list_models` and `balance` stay as they are: the model list is public and the balance belongs to the account.
+It needs the open-source proxy, version 0.2 or newer: `cargo install unlinkable-inference-cli` (add `--force` to update an older one). On a plan, the models it includes work here too: the proxy shows the server an anonymous pass when a model needs one ("this session may use frontier models"), never your account or plan. The MCP server starts it when it isn't running (and leaves it running, so sessions close on their own when idle). `list_models` and `balance` stay as they are: the model list is public and the balance belongs to the account.
 
 ```json
 "env": { "OBSCURIFY_API_KEY": "sk-obs1_...", "OBSCURIFY_PRIVATE": "1" }
